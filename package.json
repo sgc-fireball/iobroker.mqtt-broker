@@ -1,0 +1,29 @@
+{
+  "name": "iobroker.mqtt-broker",
+  "description": "The adapter allows to send and receive MQTT messages from ioBroker and to be a broker.",
+  "version": "0.1.0",
+  "author": "Richard Huelsberg <rh+github@hrdns.de>",
+  "homepage": "https://github.com/sgc-fireball/ioBroker.mqtt-broker",
+  "keywords": [
+    "iobroker",
+    "notification",
+    "MQTT",
+    "broker",
+    "message",
+    "iobroker.mqtt",
+    "iobroker.mqtt-server",
+    "iobroker.mqtt-broker",
+    "websocket"
+  ],
+  "dependencies": {
+    "@iobroker/adapter-core": "^2.4.0",
+    "console.table": "^0.10.0",
+    "http": "^0.0.1-security",
+    "mqtt-connection": "^4.0.0",
+    "uuid": "^8.1.0",
+    "websocket-stream": "^5.5.2",
+    "ws": "^7.3.0"
+  },
+  "main": "main.js",
+  "license": "MIT"
+}
