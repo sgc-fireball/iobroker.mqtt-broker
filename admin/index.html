@@ -11,14 +11,6 @@
     <script type="text/javascript">
         var onChange;
 
-        function encrypt(key, value) {
-            var result = '';
-            for (var i = 0; i < value.length; ++i) {
-                result += String.fromCharCode(key[i % key.length].charCodeAt(0) ^ value.charCodeAt(i));
-            }
-            return result;
-        }
-
         function decrypt(key, value) {
             var result = '';
             for (var i = 0; i < value.length; ++i) {
@@ -27,15 +19,21 @@
             return result;
         }
 
+        function encrypt(key, value) {
+            return decrypt(key, value);
+        }
+
         function load(settings, _onChange) {
             onChange = _onChange;
-            settings.password = !!settings.password ? decrypt('Zgfr56gFe87jJOM',settings.password) : '';
+            settings.password = !!settings.password ? decrypt('Zgfr56gFe87jJOM', settings.password) : '';
             Object.keys(settings).forEach((key) => {
-                $('#'+key).val(settings[key]);
+                $('#' + key).val(settings[key]);
             });
+            $('#cleanup_interval').val(settings.cleanup_interval * 1000);
+            $('#resend_interval').val(settings.resend_interval * 1000);
             $('#password_confirm').val($('#password').val());
             onChange(false);
-            $('input[type="text"],input[type="password"]').change(function () {
+            $('input[type="text"],input[type="number"],input[type="password"]').change(function () {
                 onChange();
             }).keyup(function () {
                 onChange();
@@ -44,15 +42,23 @@
 
         function getSettings() {
             return {
-                port: parseInt($('#port').val()),
+                host: $('#host').val() || '0.0.0.0',
+                port: parseInt($('#port').val() || 1883),
                 username: $('#username').val(),
                 password: $('#password').val(),
                 password_confirm: $('#password_confirm').val(),
+                cleanup_interval: parseInt($('#cleanup_interval').val() || 90) * 1000,
+                resend_interval: parseInt($('#resend_interval').val() || 2) * 1000,
+                max_retries: parseInt($('#max_retries').val()) || 10,
             };
         }
 
         function save(callback) {
             var values = getSettings();
+            if (!values.host) {
+                showMessage(_('Please enter your host/bind address.'));
+                return;
+            }
             if (values.port < 1 || values.port > 65534) {
                 showMessage(_('Please update your port (1-65534).'));
                 return;
@@ -78,8 +84,13 @@
             <td style="width: 80%;">
                 <table>
                     <tr>
+                        <td><label class="translate" for="host">Host:</label></td>
+                        <td><input id="host" type="text" size="5" class="value string"/></td>
+                        <td></td>
+                    </tr>
+                    <tr>
                         <td><label class="translate" for="port">Port:</label></td>
-                        <td><input id="port" type="text" size="5" class="value number"/></td>
+                        <td><input id="port" type="number" min="1" max="65534" size="5" class="value number"/></td>
                         <td></td>
                     </tr>
                     <tr>
@@ -95,6 +106,24 @@
                     <tr>
                         <td><label class="translate" for="pass_confirm">Password confirmation:</label></td>
                         <td><input id="pass_confirm" type="password" size="17"/></td>
+                        <td></td>
+                    </tr>
+
+                    <tr>
+                        <td><label class="translate" for="cleanup_interval">Cleanup Interval</label></td>
+                        <td><input id="cleanup_interval" type="number" min="1" max="3600" size="5"
+                                   class="value number"/></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td><label class="translate" for="resend_interval">Resend Interval</label></td>
+                        <td><input id="resend_interval" type="number" min="1" max="3600" size="5" class="value number"/>
+                        </td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td><label class="translate" for="max_retries">Max Retries</label></td>
+                        <td><input id="max_retries" type="number" min="1" max="100" size="5" class="value number"/></td>
                         <td></td>
                     </tr>
                 </table>

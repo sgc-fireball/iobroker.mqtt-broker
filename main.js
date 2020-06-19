@@ -2,7 +2,7 @@
 
 const utils = require('@iobroker/adapter-core');
 const adapterName = require('./package.json').name.split('.').pop();
-const decrypt = require('./inc/decrypt');
+const decrypt = require('./inc/crypt');
 
 let adapter = null;
 let states = {};
