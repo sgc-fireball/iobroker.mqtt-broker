@@ -1,11 +1,11 @@
 <html>
 <head>
-    <link rel="stylesheet" type="text/css" href="../../lib/css/themes/jquery-ui/redmond/jquery-ui.min.css"/>
-    <script type="text/javascript" src="../../lib/js/jquery-1.11.1.min.js"></script>
-    <script type="text/javascript" src="../../socket.io/socket.io.js"></script>
-    <script type="text/javascript" src="../../lib/js/jquery-ui-1.10.3.full.min.js"></script>
     <link rel="stylesheet" type="text/css" href="../../css/adapter.css"/>
+    <link rel="stylesheet" type="text/css" href="../../lib/css/materialize.css">
+    <script type="text/javascript" src="../../lib/js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="../../socket.io/socket.io.js"></script>
     <script type="text/javascript" src="../../js/translate.js"></script>
+    <script type="text/javascript" src="../../lib/js/materialize.js"></script>
     <script type="text/javascript" src="../../js/adapter-settings.js"></script>
 
     <script type="text/javascript">
@@ -29,9 +29,17 @@
             Object.keys(settings).forEach((key) => {
                 $('#' + key).val(settings[key]);
             });
-            $('#cleanup_interval').val(settings.cleanup_interval * 1000);
-            $('#resend_interval').val(settings.resend_interval * 1000);
+            $('#cleanup_interval').val(settings.cleanup_interval / 1000);
+            $('#resend_interval').val(settings.resend_interval / 1000);
             $('#password_confirm').val($('#password').val());
+
+            getIPs(function(ips) {
+                for (var i = 0; i < ips.length; i++) {
+                    $('#host').append('<option value="' + ips[i].address + '">' + ips[i].name + '</option>');
+                }
+                $('#host.value').val(settings.host).select();
+            });
+
             onChange(false);
             $('input[type="text"],input[type="number"],input[type="password"]').change(function () {
                 onChange();
@@ -78,59 +86,56 @@
     </script>
 </head>
 <body>
-<div id="adapter-container">
-    <table>
-        <tr>
-            <td style="width: 80%;">
-                <table>
-                    <tr>
-                        <td><label class="translate" for="host">Host:</label></td>
-                        <td><input id="host" type="text" size="5" class="value string"/></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td><label class="translate" for="port">Port:</label></td>
-                        <td><input id="port" type="number" min="1" max="65534" size="5" class="value number"/></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td><label class="translate" for="user">User:</label></td>
-                        <td><input id="user" type="text" size="17" class="value"/></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td><label class="translate" for="pass">Password:</label></td>
-                        <td><input id="pass" type="password" size="17" class="value"/></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td><label class="translate" for="pass_confirm">Password confirmation:</label></td>
-                        <td><input id="pass_confirm" type="password" size="17"/></td>
-                        <td></td>
-                    </tr>
+<div class="m adapter-container">
 
-                    <tr>
-                        <td><label class="translate" for="cleanup_interval">Cleanup Interval</label></td>
-                        <td><input id="cleanup_interval" type="number" min="1" max="3600" size="5"
-                                   class="value number"/></td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td><label class="translate" for="resend_interval">Resend Interval</label></td>
-                        <td><input id="resend_interval" type="number" min="1" max="3600" size="5" class="value number"/>
-                        </td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td><label class="translate" for="max_retries">Max Retries</label></td>
-                        <td><input id="max_retries" type="number" min="1" max="100" size="5" class="value number"/></td>
-                        <td></td>
-                    </tr>
-                </table>
-            </td>
-            <td style="width: 20%;"><img src="mqtt.png"></td>
-        </tr>
-    </table>
+    <div class="row">
+        <div class="col s12">
+            <img src="mqtt.png" class="logo"> ioBroker.mqtt-broker
+        </div>
+
+        <div class="col s12 m12 l12"><hr></div>
+
+        <div class="input-field col s12 m6 l4" id="_host">
+            <select class="value" id="host"></select>
+            <label class="translate" for="host">IP address:</label>
+        </div>
+        <div class="input-field col s12 m6 l4" id="_port">
+            <input id="port" type="number" min="1" max="65534" size="5" class="value"/>
+            <label class="translate" for="port">Port:</label>
+        </div>
+
+        <div class="col s12 m12 l12"><hr></div>
+
+        <div class="input-field col s12 m6 l4" id="_username">
+            <input type="text" id="username" class="value" />
+            <label class="translate" for="username">Username:</label>
+        </div>
+        <div class="input-field col s12 m6 l4" id="_password">
+            <input type="text" id="password" class="value" />
+            <label class="translate" for="password">Password:</label>
+        </div>
+        <div class="input-field col s12 m6 l4" id="_password_confirm">
+            <input type="text" id="password_confirm" class="value" />
+            <label class="translate" for="password_confirm">Password Confirm:</label>
+        </div>
+
+        <div class="col s12 m12 l12"><hr></div>
+
+        <div class="input-field col s12 m6 l4" id="_cleanup_interval">
+            <input id="cleanup_interval" type="number" min="1" max="3600" size="5" class="value"/>
+            <label class="translate" for="cleanup_interval">Cleanup Interval:</label>
+        </div>
+        <div class="input-field col s12 m6 l4" id="_resend_interval">
+            <input id="resend_interval" type="number" min="1" max="3600" size="5" class="value"/>
+            <label class="translate" for="resend_interval">Resend Interval:</label>
+        </div>
+        <div class="input-field col s12 m6 l4" id="_max_retries">
+            <input id="max_retries" type="number" min="1" max="100" size="5" class="value"/>
+            <label class="translate" for="max_retries">Max Retries:</label>
+        </div>
+
+    </div>
+
 </div>
 </body>
 </html>
