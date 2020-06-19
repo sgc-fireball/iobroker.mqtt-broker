@@ -1,6 +1,10 @@
 # ioBroker.mqtt-broker
-## Setup
+## Install
 ```bash
-$ ./iobroker url "https://github.com/sgc-fireball/iobroker.mqtt-broker.git"
+$ ./iobroker url "https://github.com/sgc-fireball/iobroker.mqtt-broker.git" --debug
 ```
 
+## Uninstall
+```bash
+$ ./iobroker del mqtt-broker
+```

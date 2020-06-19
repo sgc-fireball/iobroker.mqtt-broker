@@ -12,30 +12,15 @@ let server = null;
 function startAdapter(options) {
     options = options || {};
     Object.assign(options, {name: adapterName});
-    if (typeof (utils) !== "undefined") {
-        adapter = new utils.Adapter(options);
-        adapter.config.iobroker = 1;
-    } else {
-        adapter = {
-            config: require('./io-package.json').native,
-            event: {},
-            on: function (action, callback) {
-                this.event[action] = callback;
-                return this;
-            },
-            emit(action, params) {
-                return this.event[action].call(params);
-            }
-        };
-        adapter.config.iobroker = 0;
-    }
+    adapter = new utils.Adapter(options);
+
     adapter.on('message', function (obj) {
         console.log('adapter.on.message: '+JSON.stringify(obj));
     });
     adapter.on('ready', () => {
-        if (adapter.config.iobroker) {
-            adapter.config.password = decrypt('Zgfr56gFe87jJOM', adapter.config.password);
-        }
+        adapter.config = adapter.config || {};
+        adapter.config.password = decrypt('Zgfr56gFe87jJOM', adapter.config.password);
+
         server = require('./inc/mqttserver')(adapter.config);
         server.on('publish', (topic, state) => {
             adapter.setForeignState(topic, state);
@@ -66,10 +51,3 @@ function startAdapter(options) {
 }
 
 startAdapter();
-if (!adapter.config.iobroker) {
-    console.log('Running outside of ioBroker. Fake ready event.');
-    adapter.emit('ready');
-    setInterval(() => {
-        server.sendMessage('ntpdate/interval', Date.now());
-    }, 2000);
-}
