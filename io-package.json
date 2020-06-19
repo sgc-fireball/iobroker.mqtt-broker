@@ -2,7 +2,7 @@
   "common": {
     "name": "mqtt-broker",
     "version": "0.1.0",
-    "title": "MQTT Server",
+    "title": "MQTT Broker",
     "authors": [
       "Richard Huelsberg <rh+github@hrdns.de>"
     ],
