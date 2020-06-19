@@ -3,6 +3,7 @@
 const utils = require('@iobroker/adapter-core');
 const adapterName = require('./package.json').name.split('.').pop();
 const decrypt = require('./inc/crypt');
+const messageboxRegex = new RegExp('\.messagebox$');
 
 let adapter = null;
 let states = {};
@@ -29,7 +30,7 @@ function startAdapter(options) {
         adapter.config.iobroker = 0;
     }
     adapter.on('message', function (obj) {
-        console.log(JSON.stringify(obj));
+        console.log('adapter.on.message: '+JSON.stringify(obj));
     });
     adapter.on('ready', () => {
         if (adapter.config.iobroker) {
@@ -42,10 +43,10 @@ function startAdapter(options) {
         server.listenSocketServer(adapter.config.port, adapter.config.host);
         server.listenHttpServer(adapter.config.port + 1, adapter.config.host);
     });
-    adapter.on('unload', () => {
-        server && server.destroy();
-    });
     adapter.on('stateChange', (id, state) => {
+        if (messageboxRegex.test(id)) {
+            console.log('received update: '+id);
+        }
         if (!state) {
             delete states[id];
             server && server.sendMessage(id, null);
@@ -57,6 +58,9 @@ function startAdapter(options) {
         if (oldVal !== state.val || oldAck !== state.ack) {
             server && server.sendMessage(id, state.val);
         }
+    });
+    adapter.on('unload', () => {
+        server && server.destroy();
     });
     return adapter;
 }

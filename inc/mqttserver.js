@@ -8,7 +8,7 @@ const value2string = require('./value2string');
 const string2value = require('./string2value');
 const hasSubscribed = require('./hasSubscribed');
 const topic2regex = require('./topic2regex');
-const cTable = require('console.table');
+//const cTable = require('console.table');
 
 /**
  * @see https://github.com/ioBroker/ioBroker.mqtt/blob/master/lib/server.js#L1171
@@ -66,11 +66,11 @@ function MQTTServer(config) {
         });
     }, this.config.resend_interval);
 
-    if (this.config.debug) {
+    /*if (this.config.debug) {
         setInterval(() => {
             let now = Date.now();
             console.clear();
-            console.log('Date:', parseInt(now/1000));
+            console.log('Date: '+parseInt(now/1000).toString());
             console.table('Clients',
                 Object.values(this.clients).map((client) => {
                     return {
@@ -85,7 +85,7 @@ function MQTTServer(config) {
                 })
             );
         }, 1000)
-    }
+    }*/
 }
 
 MQTTServer.prototype.on = function(event, callback) {

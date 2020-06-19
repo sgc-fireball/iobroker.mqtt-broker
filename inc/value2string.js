@@ -14,6 +14,5 @@ module.exports = (value) => {
     if (typeof (value) === "number") {
         return value.toString(10);
     }
-    console.log(typeof(value), value);
     return value.toString('utf8');
 };
