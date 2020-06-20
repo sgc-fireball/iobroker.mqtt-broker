@@ -81,7 +81,7 @@ MQTTServer.prototype.emit = function(event, parameters) {
         return this;
     }
     Object.values(this.events[event]).forEach(callback => {
-        callback.call(parameters);
+        callback.call(undefined, parameters);
     })
     return this;
 };
