@@ -1,3 +1,4 @@
 module.exports = (id) => {
-    return id.split('/').join('.');
+    let parts = id.split('.');
+    return parts.shift() + '.' + parts.shift() + '/' + parts.join('/');
 };
