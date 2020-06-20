@@ -36,9 +36,8 @@ function startAdapter(options) {
 
         server = require('./inc/mqttserver')(adapter.config, adapter.log.info);
         server.on('publish', function(topic, state) {
-            adapter.log.info('MQTT-IN: '+value2string(topic)+' = '+ value2string(state));
-            //adapter.setForeignState(topic, state);
-            //this.sendMessage(topic, state);
+            adapter.log.info('setState('+value2string(topic)+', '+ value2string(state)+')');
+            adapter.setForeignState(topic, state);
         });
         server.listenSocketServer(adapter.config.port, adapter.config.host);
         server.listenHttpServer(adapter.config.port + 1, adapter.config.host);
