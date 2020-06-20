@@ -4,7 +4,7 @@ const utils = require('@iobroker/adapter-core');
 const adapterName = require('./package.json').name.split('.').pop();
 const decrypt = require('./inc/crypt');
 const encrypt = require('./inc/crypt');
-const value2string = require('./value2string');
+const value2string = require('./inc/value2string');
 const messageboxRegex = new RegExp('(\.messagebox$|^system\.)');
 
 const secret = 'Zgfr56gFe87jJOM';
