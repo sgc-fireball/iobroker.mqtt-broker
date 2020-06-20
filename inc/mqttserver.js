@@ -8,7 +8,6 @@ const value2string = require('./value2string');
 const string2value = require('./string2value');
 const hasSubscribed = require('./hasSubscribed');
 const topic2regex = require('./topic2regex');
-//const cTable = require('console.table');
 
 /**
  * @see https://github.com/ioBroker/ioBroker.mqtt/blob/master/lib/server.js#L1171
@@ -65,27 +64,6 @@ function MQTTServer(config) {
             });
         });
     }, this.config.resend_interval);
-
-    /*if (this.config.debug) {
-        setInterval(() => {
-            let now = Date.now();
-            console.clear();
-            console.log('Date: '+parseInt(now/1000).toString());
-            console.table('Clients',
-                Object.values(this.clients).map((client) => {
-                    return {
-                        id: client._id,
-                        keepalice: client._keepalice,
-                        lastSeen: (now - client._lastSeen)/1000,
-                        connected: client._connected,
-                        persistent: client._persistent,
-                        messages: Object.values(client._messages).length,
-                        subscriptions: Object.values(client._subscriptions).length,
-                    };
-                })
-            );
-        }, 1000)
-    }*/
 }
 
 MQTTServer.prototype.on = function(event, callback) {
@@ -175,6 +153,7 @@ MQTTServer.prototype._onConnect = function (client, packet) {
         let username = (packet.username || null).toString('utf8');
         let password = (packet.password || null).toString('utf8');
         if (this.config.username !== username || this.config.password !== password) {
+            console.log('Reject connection. Invalid credentials.');
             client.connack({returnCode: 4});
             client.destroy();
             return;
@@ -189,6 +168,7 @@ MQTTServer.prototype._onConnect = function (client, packet) {
         client._will = will;
     }
 
+    console.log('Accept connection: '+client._id);
     client.connack({returnCode: 0, sessionPresent: !client.cleanSession});
     if (!packet.clean) {
         client._persistent = true;
@@ -221,7 +201,7 @@ MQTTServer.prototype._onPublish = function (client, packet) {
     }
 
     this.emit('publish', [topic, state]);
-    this.sendMessage(topic, state);
+    //this.sendMessage(topic, state);
 };
 
 MQTTServer.prototype._onPubAck = function (client, packet) {
@@ -259,16 +239,16 @@ MQTTServer.prototype._onSubscribe = function (client, packet) {
     for (let i = 0; i < packet.subscriptions.length; i++) {
         const topic = packet.subscriptions[i].topic;
         const qos = packet.subscriptions[i].qos;
-        if (true) { // if allowed
+        //if (true) { // if allowed
             granted.push(qos);
             client._subscriptions[topic] = {regex: topic2regex(topic), qos: qos};
 
             if (this.retains.hasOwnProperty(topic)) {
                 this.sendMessageToClient(client, topic, this.retains[topic], false, qos);
             }
-        } else {
+        /*} else {
             granted.push(128); // Failed
-        }
+        }*/
     }
     client.suback({granted: granted, messageId: packet.messageId});
 };
