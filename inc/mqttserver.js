@@ -126,7 +126,8 @@ MQTTServer.prototype.getMessageId = function () {
 MQTTServer.prototype._onConnection = function (stream, ws = false) {
     let client = ws ? mqtt(websocketStream(stream)) : mqtt(stream);
     client = hasSubscribed(client);
-    client._id = client._id ||null;
+    client._id = client._id || null;
+    client._username = client._username || null;
     client._keepalice = client._keepalice || null;
     client._lastSeen = Date.now();
     client._messages = client._messages || {};
@@ -167,6 +168,7 @@ MQTTServer.prototype._onConnect = function (client, packet) {
     }
 
     client._id = packet.clientId;
+    client._username = packet.username;
     client._keepalice = packet.keepalive || 0;
     if (!!packet.will) {
         let will = JSON.parse(JSON.stringify(packet.will));
@@ -206,7 +208,7 @@ MQTTServer.prototype._onPublish = function (client, packet) {
         this.retains[topic] = state;
     }
 
-    this.emit('publish', [topic, state]);
+    this.emit('publish', [client, topic, state]);
     //this.sendMessage(topic, state);
 };
 
