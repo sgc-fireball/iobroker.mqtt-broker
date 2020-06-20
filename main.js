@@ -21,6 +21,16 @@ function startAdapter(options) {
         adapter.config = adapter.config || {};
         adapter.config.password = decrypt('Zgfr56gFe87jJOM', adapter.config.password);
 
+        adapter.subscribeForeignStates('*');
+        adapter.getForeignStates('*', (err, res) => {
+            if (!err && res) {
+                states = states || {};
+                Object.keys(res)
+                    .filter(id => !messageboxRegex.test(id))
+                    .forEach(id => states[id] = res[id]);
+            }
+        });
+
         server = require('./inc/mqttserver')(adapter.config);
         server.on('publish', (topic, state) => {
             adapter.setForeignState(topic, state);
@@ -30,7 +40,7 @@ function startAdapter(options) {
     });
     adapter.on('stateChange', (id, state) => {
         if (messageboxRegex.test(id)) {
-            console.log('received update: '+id);
+            return;
         }
         if (!state) {
             delete states[id];
