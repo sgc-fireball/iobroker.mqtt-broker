@@ -18,7 +18,7 @@ function startAdapter(options) {
     adapter = new utils.Adapter(options);
 
     adapter.on('message', function (obj) {
-        console.log('adapter.on.message: '+value2string(obj));
+        adapter.log.info('adapter.on.message: '+value2string(obj));
     });
     adapter.on('ready', () => {
         adapter.config = adapter.config || {};
@@ -34,9 +34,9 @@ function startAdapter(options) {
             }
         });
 
-        server = require('./inc/mqttserver')(adapter.config);
+        server = require('./inc/mqttserver')(adapter.config, adapter.log.info);
         server.on('publish', function(topic, state) {
-            console.log('MQTT-IN: '+value2string(topic)+' = '+ value2string(state));
+            adapter.log.info('MQTT-IN: '+value2string(topic)+' = '+ value2string(state));
             adapter.setForeignState(topic, state);
             //this.sendMessage(topic, state);
         });

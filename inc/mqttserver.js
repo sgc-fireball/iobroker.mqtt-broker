@@ -12,11 +12,12 @@ const topic2regex = require('./topic2regex');
 /**
  * @see https://github.com/ioBroker/ioBroker.mqtt/blob/master/lib/server.js#L1171
  */
-function MQTTServer(config) {
+function MQTTServer(config, log) {
     if (!(this instanceof MQTTServer)) {
-        return new MQTTServer(config);
+        return new MQTTServer(config, log);
     }
 
+    this.log = log || function(msg) {console.log(msg)};
     this.config = config;
     this.config.debug = !!this.config.debug;
     this.config.cleanup_interval = this.config.cleanup_interval || 90000;
@@ -150,7 +151,7 @@ MQTTServer.prototype._onConnection = function (stream, ws = false) {
 
 MQTTServer.prototype._onConnect = function (client, packet) {
     if (!this.config.username || !this.config.password) {
-        console.log('Recject connection. Missing server credential settings.');
+        this.log('Recject connection. Missing server credential settings.');
         client.connack({returnCode: 4});
         client.destroy();
         return;
@@ -159,7 +160,7 @@ MQTTServer.prototype._onConnect = function (client, packet) {
     let username = (packet.username || '').toString('utf8');
     let password = (packet.password || '').toString('utf8');
     if (this.config.username !== username || this.config.password !== password) {
-        console.log('Reject connection. Invalid credentials.');
+        this.log('Reject connection. Invalid credentials.');
         client.connack({returnCode: 4});
         client.destroy();
         return;
@@ -173,7 +174,7 @@ MQTTServer.prototype._onConnect = function (client, packet) {
         client._will = will;
     }
 
-    console.log('Accept connection: '+client._id);
+    this.log('Accept connection: '+client._id);
     client.connack({returnCode: 0, sessionPresent: !client.cleanSession});
     if (!packet.clean) {
         client._persistent = true;
