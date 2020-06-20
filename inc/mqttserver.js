@@ -149,15 +149,20 @@ MQTTServer.prototype._onConnection = function (stream, ws = false) {
 };
 
 MQTTServer.prototype._onConnect = function (client, packet) {
-    if (!!this.config.username && !!this.config.password) {
-        let username = (packet.username || null).toString('utf8');
-        let password = (packet.password || null).toString('utf8');
-        if (this.config.username !== username || this.config.password !== password) {
-            console.log('Reject connection. Invalid credentials.');
-            client.connack({returnCode: 4});
-            client.destroy();
-            return;
-        }
+    if (!this.config.username || !this.config.password) {
+        console.log('Recject connection. Missing server credential settings.');
+        client.connack({returnCode: 4});
+        client.destroy();
+        return;
+    }
+
+    let username = (packet.username || '').toString('utf8');
+    let password = (packet.password || '').toString('utf8');
+    if (this.config.username !== username || this.config.password !== password) {
+        console.log('Reject connection. Invalid credentials.');
+        client.connack({returnCode: 4});
+        client.destroy();
+        return;
     }
 
     client._id = packet.clientId;
