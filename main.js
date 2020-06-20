@@ -35,7 +35,7 @@ function startAdapter(options) {
         });
 
         server = require('./inc/mqttserver')(adapter.config, adapter.log.info);
-        server.on('publish', (publish, topic, state) => {
+        server.on('publish', (client, topic, state) => {
             adapter.log.info('User '+client._username+' update '+value2string(topic)+' to '+ value2string(state));
             adapter.setForeignState(topic, state);
         });
