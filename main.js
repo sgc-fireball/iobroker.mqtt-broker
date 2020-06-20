@@ -5,6 +5,7 @@ const adapterName = require('./package.json').name.split('.').pop();
 const decrypt = require('./inc/crypt');
 const messageboxRegex = new RegExp('(\.messagebox$|^system\.)');
 
+const secret = 'Zgfr56gFe87jJOM';
 let adapter = null;
 let states = {};
 let server = null;
@@ -19,7 +20,7 @@ function startAdapter(options) {
     });
     adapter.on('ready', () => {
         adapter.config = adapter.config || {};
-        adapter.config.password = decrypt('Zgfr56gFe87jJOM', adapter.config.password);
+        adapter.config.password = decrypt(secret, adapter.config.password || encrypt(secret, 'iobroker'));
 
         adapter.subscribeForeignStates('*');
         adapter.getForeignStates('*', (err, res) => {

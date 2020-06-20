@@ -10,6 +10,7 @@
 
     <script type="text/javascript">
         var onChange;
+        var secret = 'Zgfr56gFe87jJOM';
 
         function decrypt(key, value) {
             var result = '';
@@ -25,7 +26,7 @@
 
         function load(settings, _onChange) {
             onChange = _onChange;
-            settings.password = !!settings.password ? decrypt('Zgfr56gFe87jJOM', settings.password) : '';
+            settings.password = !!settings.password ? decrypt(secret, settings.password) : '';
             Object.keys(settings).forEach((key) => {
                 $('#' + key).val(settings[key]);
             });
@@ -72,7 +73,7 @@
                 return;
             }
             delete values.password_confirm;
-            values.password = encrypt('Zgfr56gFe87jJOM', values.password);
+            values.password = encrypt(secret, values.password);
             callback(values);
         }
     </script>
