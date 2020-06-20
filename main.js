@@ -3,6 +3,8 @@
 const utils = require('@iobroker/adapter-core');
 const adapterName = require('./package.json').name.split('.').pop();
 const decrypt = require('./inc/crypt');
+const encrypt = require('./inc/crypt');
+const value2string = require('./value2string');
 const messageboxRegex = new RegExp('(\.messagebox$|^system\.)');
 
 const secret = 'Zgfr56gFe87jJOM';
@@ -16,7 +18,7 @@ function startAdapter(options) {
     adapter = new utils.Adapter(options);
 
     adapter.on('message', function (obj) {
-        console.log('adapter.on.message: '+JSON.stringify(obj));
+        console.log('adapter.on.message: '+value2string(obj));
     });
     adapter.on('ready', () => {
         adapter.config = adapter.config || {};
@@ -34,7 +36,7 @@ function startAdapter(options) {
 
         server = require('./inc/mqttserver')(adapter.config);
         server.on('publish', function(topic, state) {
-            console.log('MQTT-IN: '+topic.toString()+' = '+ state.toString());
+            console.log('MQTT-IN: '+value2string(topic)+' = '+ value2string(state));
             adapter.setForeignState(topic, state);
             //this.sendMessage(topic, state);
         });
