@@ -54,7 +54,7 @@ function startAdapter(options) {
         const oldVal = states.hasOwnProperty(id) ? states[id].val : null;
         const oldAck = states.hasOwnProperty(id) ? states[id].ack : null;
         states[id] = state;
-        if (oldVal !== state.val || oldAck !== state.ack) {
+        if (oldVal !== state.val || oldAck !== state.ack && state.ack) {
             server && server.sendMessage(id, state.val);
         }
     });
