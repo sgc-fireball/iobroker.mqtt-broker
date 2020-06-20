@@ -5,6 +5,8 @@ const adapterName = require('./package.json').name.split('.').pop();
 const decrypt = require('./inc/crypt');
 const encrypt = require('./inc/crypt');
 const value2string = require('./inc/value2string');
+const topic2id = require('./inc/topic2id');
+const id2topic = require('./inc/topic2id');
 const messageboxRegex = new RegExp('(\.messagebox$|^system\.)');
 
 const secret = 'Zgfr56gFe87jJOM';
@@ -18,7 +20,7 @@ function startAdapter(options) {
     adapter = new utils.Adapter(options);
 
     adapter.on('message', function (obj) {
-        adapter.log.info('adapter.on.message: '+value2string(obj));
+        adapter.log.info('adapter.on.message: ' + value2string(obj));
     });
     adapter.on('ready', () => {
         adapter.config = adapter.config || {};
@@ -35,9 +37,10 @@ function startAdapter(options) {
         });
 
         server = require('./inc/mqttserver')(adapter.config, adapter.log.info);
-        server.on('publish', (client, topic, state) => {
-            adapter.log.info('User '+client._username+' update '+value2string(topic)+' to '+ value2string(state));
-            adapter.setForeignState(topic, state);
+        server.on('publish', (client, topic, value) => {
+            let id = topic2id(topic);
+            adapter.log.info('User ' + client._username + ' update ' + id + ' to ' + value2string(value));
+            adapter.setForeignState(id, state);
         });
         server.listenSocketServer(adapter.config.port, adapter.config.host);
         server.listenHttpServer(adapter.config.port + 1, adapter.config.host);
@@ -48,14 +51,14 @@ function startAdapter(options) {
         }
         if (!state) {
             delete states[id];
-            server && server.sendMessage(id, null);
+            server && server.sendMessage(id2topic(id), null);
             return;
         }
         const oldVal = states.hasOwnProperty(id) ? states[id].val : null;
         const oldAck = states.hasOwnProperty(id) ? states[id].ack : null;
         states[id] = state;
-        if (oldVal !== state.val || oldAck !== state.ack && state.ack) {
-            server && server.sendMessage(id, state.val);
+        if (oldVal !== state.val || oldAck !== state.ack) {
+            server && server.sendMessage(id2topic(id), state.val);
         }
     });
     adapter.on('unload', () => {

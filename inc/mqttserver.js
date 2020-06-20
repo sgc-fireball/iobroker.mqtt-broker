@@ -304,10 +304,8 @@ MQTTServer.prototype._sendWillMessage = function (client) {
 };
 
 MQTTServer.prototype.sendMessage = function (topic, payload, retain = false, qos = 0) {
-    setImmediate(() => { // start new thread
-        Object.values(this.clients).forEach((client) => {
-            this.sendMessageToClient(client, topic, payload, retain, qos);
-        });
+    Object.values(this.clients).forEach((client) => {
+        this.sendMessageToClient(client, topic, payload, retain, qos);
     });
 };
 
@@ -315,7 +313,6 @@ MQTTServer.prototype.sendMessageToClient = function (client, topic, payload, ret
     if (!client.hasSubscribed(topic)) {
         return;
     }
-
     let message = {
         qos: (client._subscriptions[topic] || {}).qos || qos,
         retain: !!retain,
@@ -331,7 +328,9 @@ MQTTServer.prototype.sendMessageToClient = function (client, topic, payload, ret
         client._messages[message.messageId] = message;
     }
 
-    client.publish(message);
+    setImmediate(() => { // start new thread
+        client.publish(message);
+    });
     return message;
 };
 
