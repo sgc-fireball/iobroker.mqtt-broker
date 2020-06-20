@@ -6,7 +6,7 @@ const decrypt = require('./inc/crypt');
 const encrypt = require('./inc/crypt');
 const value2string = require('./inc/value2string');
 const topic2id = require('./inc/topic2id');
-const id2topic = require('./inc/topic2id');
+const id2topic = require('./inc/id2topic');
 const messageboxRegex = new RegExp('(\.messagebox$|^system\.)');
 
 const secret = 'Zgfr56gFe87jJOM';
