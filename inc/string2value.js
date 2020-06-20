@@ -9,7 +9,7 @@ module.exports = (str) => {
         return null;
     }
     if (str === 'true') {
-        return trueM
+        return true;
     }
     if (str === 'false') {
         return false;
