@@ -40,7 +40,7 @@ function startAdapter(options) {
         server.on('publish', (client, topic, value) => {
             let id = topic2id(topic);
             adapter.log.info('User ' + client._username + ' update ' + id + ' to ' + value2string(value));
-            adapter.setForeignState(id, state);
+            adapter.setForeignState(id, value);
         });
         server.listenSocketServer(adapter.config.port, adapter.config.host);
         server.listenHttpServer(adapter.config.port + 1, adapter.config.host);
