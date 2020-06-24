@@ -45,7 +45,7 @@ function startAdapter(options) {
                             server && server.sendMessageToClient(
                                 client,
                                 id2topic(id),
-                                states[id].val
+                                (states[id] || {}).val || null
                             );
                         });
                     });
