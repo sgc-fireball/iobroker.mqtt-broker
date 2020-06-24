@@ -44,7 +44,6 @@ function startAdapter(options) {
                 if (value === "get_states") {
                     setImmediate(() => {
                         Object.keys(states).forEach((id) => {
-                            adapter.log.info('offer '+id2topic(id));
                             server && server.sendMessageToClient(
                                 client,
                                 id2topic(id),
