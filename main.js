@@ -22,6 +22,7 @@ function startAdapter(options) {
     adapter.on('message', function (obj) {
         adapter.log.info('adapter.on.message: ' + value2string(obj));
     });
+
     adapter.on('ready', () => {
         adapter.config = adapter.config || {};
         adapter.config.password = decrypt(secret, adapter.config.password || encrypt(secret, 'iobroker'));
@@ -29,16 +30,17 @@ function startAdapter(options) {
         adapter.subscribeForeignStates('*');
         adapter.getForeignStates('*', (err, res) => {
             if (!err && res) {
-                states = states || {};
                 Object.keys(res)
                     .filter(id => !messageboxRegex.test(id))
                     .forEach(id => states[id] = res[id]);
+                adapter.log.info('Preloading states: '+Object.keys(states).length);
             }
         });
 
         server = require('./inc/mqttserver')(adapter.config, adapter.log.info);
         server.on('publish', (client, topic, value) => {
             if (topic === 'rpc') {
+                adapter.log.info('User ' + client._username + ' call fucntion ' + value);
                 if (value === "get_states") {
                     setImmediate(() => {
                         Object.keys(states).forEach((id) => {
