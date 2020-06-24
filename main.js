@@ -43,6 +43,7 @@ function startAdapter(options) {
                     setImmediate(() => {
                         Object.keys(states).forEach((id) => {
                             server && server.sendMessageToClient(
+                                client,
                                 id2topic(id),
                                 states[id].val
                             );

@@ -311,7 +311,6 @@ MQTTServer.prototype.sendMessage = function (topic, payload, retain = false, qos
 };
 
 MQTTServer.prototype.sendMessageToClient = function (client, topic, payload, retain = false, qos = 0) {
-    client = hasSubscribed(client);
     if (!client.hasSubscribed(topic)) {
         return;
     }
