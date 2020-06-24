@@ -11,4 +11,7 @@
 ```
 
 ## Commands
-- rpc/get_states
+- Topic: `rpc`
+
+### rpc
+- Value: `get_states`

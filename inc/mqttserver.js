@@ -209,6 +209,7 @@ MQTTServer.prototype._onPublish = function (client, packet) {
         this.retains[topic] = state;
     }
 
+    client = hasSubscribed(client);
     this.emit('publish', [client, topic, state]);
     //this.sendMessage(topic, state);
 };
