@@ -38,9 +38,8 @@ function startAdapter(options) {
 
         server = require('./inc/mqttserver')(adapter.config, adapter.log.info);
         server.on('publish', (client, topic, value) => {
-            let topicParts = topic.split('/');
-            if (topicParts.length === 2 && topicParts[0] === 'rpc') {
-                if (topicParts[2] === "get_states") {
+            if (topic === 'rpc') {
+                if (value === "get_states") {
                     setImmediate(() => {
                         Object.keys(states).forEach((id) => {
                             server && server.sendMessageToClient(
