@@ -40,7 +40,7 @@ function startAdapter(options) {
         server = require('./inc/mqttserver')(adapter.config, adapter.log.info);
         server.on('publish', (client, topic, value) => {
             if (topic === 'rpc') {
-                adapter.log.info('User ' + client._username + ' call function: ' + value);
+                adapter.log.info('Client ' + client._id + ' call function: ' + value);
                 if (value === "get_states") {
                     setImmediate(() => {
                         Object.keys(states).forEach((id) => {

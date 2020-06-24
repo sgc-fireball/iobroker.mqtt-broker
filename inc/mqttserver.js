@@ -179,7 +179,7 @@ MQTTServer.prototype._onConnect = function (client, packet) {
         client._will = will;
     }
 
-    this.log('Incoming connection. client_id: ' + client._id);
+    this.log('Incoming connection. Client: ' + client._id);
     client.connack({returnCode: 0, sessionPresent: !client.cleanSession});
 
     if (!packet.clean) {
