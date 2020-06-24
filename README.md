@@ -9,3 +9,6 @@
 ```bash
 ./iobroker del mqtt-broker
 ```
+
+## Commands
+- rpc/get_states

@@ -176,8 +176,9 @@ MQTTServer.prototype._onConnect = function (client, packet) {
         client._will = will;
     }
 
-    this.log('Accept connection: '+client._id);
+    this.log('Accept connection: '+client._id+' with user '+client._username);
     client.connack({returnCode: 0, sessionPresent: !client.cleanSession});
+
     if (!packet.clean) {
         client._persistent = true;
         client._messages = (this.clients[client._id] || {})._messages || {}; // {messageId: message}
