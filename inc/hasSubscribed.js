@@ -1,8 +1,5 @@
 module.exports = (client) => {
     client.hasSubscribed = (topic) => {
-        if (client._subscriptions.hasOwnProperty('#')) {
-            return true;
-        }
         let found = false;
         Object.values(client._subscriptions).forEach((subscription) => {
             if (!found) {

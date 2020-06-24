@@ -1,15 +1,20 @@
 module.exports = (pattern) => {
     if (pattern === '#') {
-        return /.*/;
+        return new RegExp('^.*$');
     }
 
-    if (pattern.indexOf('#') !== -1) {
-        throw new Error('invalid pattern.');
-    }
-    if (pattern.indexOf('++') !== -1) {
-        throw new Error('invalid pattern.');
+    let wildcardPos = pattern.indexOf('#');
+    if (wildcardPos !== -1) {
+        if (wildcardPos !== pattern.length - 1) {
+            throw new Error('Invalid pattern.');
+        }
+        pattern = pattern.replace(/\$/g, '\\$');
+        pattern = pattern.replace(/\./g, '\\.');
+        pattern = pattern.replace(/#$/, '.*');
+        return new RegExp('^' + pattern + '$');
     }
 
+    pattern = pattern.replace(/\$/g, '\\$');
     pattern = pattern.replace(/\./g, '\\.');
     pattern = pattern.replace(/\+/, '[^/]+');
     return new RegExp('^' + pattern + '$');

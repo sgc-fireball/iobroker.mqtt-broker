@@ -17,9 +17,12 @@ function MQTTServer(config, log) {
         return new MQTTServer(config, log);
     }
 
-    this.log = log || function(msg) {console.log(msg)};
+    this.log = log || function (msg) {
+        console.log(msg)
+    };
     this.config = config;
     this.config.debug = !!this.config.debug;
+    this.config.broker = !!this.config.broker;
     this.config.cleanup_interval = this.config.cleanup_interval || 90000;
     this.config.max_retries = this.config.max_retries || 10;
     this.config.resend_interval = this.config.resend_interval || 2000;
@@ -67,7 +70,7 @@ function MQTTServer(config, log) {
     }, this.config.resend_interval);
 }
 
-MQTTServer.prototype.on = function(event, callback) {
+MQTTServer.prototype.on = function (event, callback) {
     if (!this.events.hasOwnProperty(event)) {
         return null;
     }
@@ -76,7 +79,7 @@ MQTTServer.prototype.on = function(event, callback) {
     return id;
 };
 
-MQTTServer.prototype.emit = function(event, parameters) {
+MQTTServer.prototype.emit = function (event, parameters) {
     if (!this.events.hasOwnProperty(event)) {
         return this;
     }
@@ -86,7 +89,7 @@ MQTTServer.prototype.emit = function(event, parameters) {
     return this;
 };
 
-MQTTServer.prototype.off = function(event, id) {
+MQTTServer.prototype.off = function (event, id) {
     if (!this.events.hasOwnProperty(event)) {
         return this;
     }
@@ -152,7 +155,7 @@ MQTTServer.prototype._onConnection = function (stream, ws = false) {
 
 MQTTServer.prototype._onConnect = function (client, packet) {
     if (!this.config.username || !this.config.password) {
-        this.log('Recject connection. Missing server credential settings.');
+        this.log('Reject connection. Missing server credential settings.');
         client.connack({returnCode: 4});
         client.destroy();
         return;
@@ -176,7 +179,7 @@ MQTTServer.prototype._onConnect = function (client, packet) {
         client._will = will;
     }
 
-    this.log('Accept connection: '+client._id+' with user '+client._username);
+    this.log('Incoming connection. client_id: ' + client._id);
     client.connack({returnCode: 0, sessionPresent: !client.cleanSession});
 
     if (!packet.clean) {
@@ -194,6 +197,10 @@ MQTTServer.prototype._onConnect = function (client, packet) {
 
 MQTTServer.prototype._onPublish = function (client, packet) {
     this.clients[client._id]._lastSeen = Date.now();
+    const topic = packet.topic;
+    if (topic.indexOf('$') !== 0) {
+        this.log('Client ' + client._id + ' wants to publish an internal topic: ' + topic);
+    }
 
     if (packet.qos === 1) {
         client.puback({messageId: packet.messageId});
@@ -202,7 +209,6 @@ MQTTServer.prototype._onPublish = function (client, packet) {
         return;
     }
 
-    const topic = packet.topic;
     const state = string2value(packet.payload);
 
     if (packet.retain) {
@@ -210,7 +216,9 @@ MQTTServer.prototype._onPublish = function (client, packet) {
     }
 
     this.emit('publish', [client, topic, state]);
-    //this.sendMessage(topic, state);
+    if (this.config.broker) {
+        this.sendMessage(topic, state);
+    }
 };
 
 MQTTServer.prototype._onPubAck = function (client, packet) {
@@ -238,26 +246,30 @@ MQTTServer.prototype._onPubRel = function (client, packet) {
     client._lastSeen = Date.now();
     if (client._messages.hasOwnProperty(packet.messageId)) {
         client.pubcomp({messageId: packet.messageId});
-        // @TODO receivedTopic
     }
 };
 
 MQTTServer.prototype._onSubscribe = function (client, packet) {
     client._lastSeen = Date.now();
+    client._lastSeen = Date.now();
     let granted = [];
     for (let i = 0; i < packet.subscriptions.length; i++) {
-        const topic = packet.subscriptions[i].topic;
-        const qos = packet.subscriptions[i].qos;
-        //if (true) { // if allowed
+        try {
+            const topic = packet.subscriptions[i].topic;
+            const qos = packet.subscriptions[i].qos;
+            //if (true) { // if allowed
             granted.push(qos);
             client._subscriptions[topic] = {regex: topic2regex(topic), qos: qos};
 
             if (this.retains.hasOwnProperty(topic)) {
                 this.sendMessageToClient(client, topic, this.retains[topic], false, qos);
             }
-        /*} else {
-            granted.push(128); // Failed
-        }*/
+            /*} else {
+                granted.push(128); // Failed
+            }*/
+        } catch (e) {
+            granted.push(128);
+        }
     }
     client.suback({granted: granted, messageId: packet.messageId});
 };
@@ -284,6 +296,7 @@ MQTTServer.prototype._onClose = function (client, error = null) {
     }
     error = error !== null && typeof (error) !== "string" ? error.toString('utf8') : error;
     if (this.clients.hasOwnProperty(client._id)) {
+        this.log('Connection closed from client '+client._id+' (reason: '+error+')');
         if (this.clients[client._id]._persistent && error !== 'cleanup') {
             this.clients[client._id]._connected = false;
         } else {
@@ -312,7 +325,6 @@ MQTTServer.prototype.sendMessage = function (topic, payload, retain = false, qos
 
 MQTTServer.prototype.sendMessageToClient = function (client, topic, payload, retain = false, qos = 0) {
     if (!client.hasSubscribed(topic)) {
-        this.log(client._username+' doesn\'t subsriebe '+topic);
         return;
     }
     let message = {
