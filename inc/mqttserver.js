@@ -198,8 +198,9 @@ MQTTServer.prototype._onConnect = function (client, packet) {
 MQTTServer.prototype._onPublish = function (client, packet) {
     this.clients[client._id]._lastSeen = Date.now();
     const topic = packet.topic;
-    if (topic.indexOf('$') !== 0) {
+    if (topic.indexOf('$') === 0) {
         this.log('Client ' + client._id + ' wants to publish an internal topic: ' + topic);
+        return;
     }
 
     if (packet.qos === 1) {
