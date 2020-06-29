@@ -52,17 +52,17 @@ class IoBrokerUtils {
                     }
 
                     if (!obj.common.enable) {
-                        return reject('Invalid credentials.');
+                        return reject('Invalid credentials. User is disabled.');
                     }
 
                     /** @see https://github.com/ioBroker/ioBroker.js-controller/blob/3a3cda9ba615ed14a9a128de4379f5589f4f4b0f/lib/password.js#L72 */
                     const hash = obj.common.password;
                     const key = hash.split('$');
                     if (key.length !== 4 || !key[2] || !key[3]) {
-                        return reject('Invalid credentials.');
+                        return reject('Invalid credentials. Unknown password type.');
                     }
                     if (key[0] !== 'pbkdf2') {
-                        return reject('Invalid credentials.');
+                        return reject('Invalid credentials. Invalid password type.');
                     }
 
                     const salt = key[3] || crypto.randomBytes(16).toString('hex');
@@ -76,13 +76,13 @@ class IoBrokerUtils {
                         'sha256',
                         (err, key) => {
                             if (err || !key) {
-                                return reject('Invalid credentials.');
+                                return reject('Invalid credentials. '+e.toString());
                             }
 
                             if (hash === `pbkdf2$${iterations}$${key.toString('hex')}$${salt}`) {
                                 return resolve();
                             }
-                            return reject('Invalid credentials.');
+                            return reject('Invalid credentials. Invalid Password.');
                         }
                     );
                 }

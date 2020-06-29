@@ -201,7 +201,7 @@ MQTTServer.prototype._onConnect = function (client, packet) {
             this.clients[client._id] = client;
         })
         .catch((e) => {
-            this.log('Reject connection. Invalid credentials.');
+            this.log('Reject connection. '+(e.toString()));
             client.connack({returnCode: 4});
             client.destroy();
         });
