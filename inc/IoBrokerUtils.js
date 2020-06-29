@@ -58,8 +58,8 @@ class IoBrokerUtils {
                     }
 
                     /** @see https://github.com/ioBroker/ioBroker.js-controller/blob/3a3cda9ba615ed14a9a128de4379f5589f4f4b0f/lib/password.js#L72 */
-                    const hash = obj.common.password;
-                    const key = hash.split('$');
+                    const oldHash = obj.common.password;
+                    const key = oldHash.split('$');
                     if (key.length !== 4 || !key[2] || !key[3]) {
                         return reject('Invalid credentials. Unknown password type.');
                     }
@@ -78,12 +78,16 @@ class IoBrokerUtils {
                         'sha256',
                         (err, key) => {
                             if (err || !key) {
-                                return reject('Invalid credentials. '+e.toString());
+                                return reject('Invalid credentials. '+err.toString());
                             }
 
-                            if (hash === `pbkdf2$${iterations}$${key.toString('hex')}$${salt}`) {
+                            let newHash = `pbkdf2$${iterations}$${key.toString('hex')}$${salt}`;
+                            if (oldHash === newHash) {
                                 return resolve();
                             }
+
+                            this.adapter.log.warn('old: '+oldHash);
+                            this.adapter.log.warn('new: '+newHash);
                             return reject('Invalid credentials. Invalid Password.');
                         }
                     );
