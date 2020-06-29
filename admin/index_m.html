@@ -18,7 +18,7 @@
             });
             $('#cleanup_interval').val(settings.cleanup_interval / 1000);
             $('#resend_interval').val(settings.resend_interval / 1000);
-            $('#wsport').val($('#port').val() + 1);
+            $('#wsport').val( parseInt($('#port').val()) + 1);
 
             getIPs(function(ips) {
                 for (var i = 0; i < ips.length; i++) {
@@ -33,13 +33,13 @@
                     return;
                 }
                 onChange();
-                $('#wsport').val($('#port').val() + 1);
+                $('#wsport').val( parseInt($('#port').val()) + 1);
             }).keyup(function () {
                 if ($(this).attr('id') === 'wsport') {
                     return;
                 }
                 onChange();
-                $('#wsport').val($('#port').val() + 1);
+                $('#wsport').val( parseInt($('#port').val()) + 1);
             });
         }
 
