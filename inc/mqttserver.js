@@ -201,7 +201,9 @@ MQTTServer.prototype._onConnect = function (client, packet) {
             this.clients[client._id] = client;
         })
         .catch((e) => {
-            this.log('Reject connection. '+(e.toString()));
+            e = e === null ? 'Unknown error' : e;
+            e = typeof(e) === 'object' || typeof(e) === 'string' ? e.toString() : JSON.encode(e);
+            this.log('Reject connection. '+e);
             client.connack({returnCode: 4});
             client.destroy();
         });

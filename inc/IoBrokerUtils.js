@@ -48,7 +48,7 @@ class IoBrokerUtils {
                 'system.user.' + username,
                 (err, obj) => {
                     if (err || !obj) {
-                        return reject(err);
+                        return reject(err || 'Unknown system user.');
                     }
 
                     if (!obj.common.enable) {

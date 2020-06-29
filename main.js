@@ -37,7 +37,6 @@ function startAdapter(options) {
 
         server = require('./inc/mqttserver')(adapter.config, adapter.log.info);
         server.checkCredentials = function(username, password) {
-            adapter.log.info('check '+username+' with password '+('*'.repeat(password.length)));
             return ioUtils.checkCredentials(username, password);
         }.bind(server);
         server.on('publish', (client, topic, value) => {
