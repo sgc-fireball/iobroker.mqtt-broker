@@ -78,16 +78,16 @@ class IoBrokerUtils {
                         'sha256',
                         (err, key) => {
                             if (err || !key) {
-                                return reject('Invalid credentials. '+err.toString());
+                                return reject('Invalid credentials. ' + err.toString());
                             }
 
-                            let newHash = `pbkdf2$${iterations}$${key.toString('hex')}$${salt}`;
+                            let newHash = "pbkdf2$" + iterations + "$" + key.toString('hex') + "$" + salt;
                             if (oldHash === newHash) {
                                 return resolve();
                             }
 
-                            this.adapter.log.warn('old: '+oldHash);
-                            this.adapter.log.warn('new: '+newHash);
+                            this.adapter.log.warn('old: ' + oldHash);
+                            this.adapter.log.warn('new: ' + newHash);
                             return reject('Invalid credentials. Invalid Password.');
                         }
                     );
