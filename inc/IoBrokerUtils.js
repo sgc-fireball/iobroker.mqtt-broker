@@ -51,8 +51,7 @@ class IoBrokerUtils {
                         return reject(err || 'Unknown system user.');
                     }
 
-                    this.adapter.log.info(JSON.stringify(obj));
-                    if (!obj.common.enable) {
+                    if (!obj.common.enabled) {
                         return reject('Invalid credentials. User is disabled.');
                     }
 
