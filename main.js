@@ -36,9 +36,9 @@ function startAdapter(options) {
         });
 
         server = require('./inc/mqttserver')(adapter.config, adapter.log.info);
-        server.prototype.checkCredentials = (username, password) => {
+        server.checkCredentials = function(username, password) {
             return ioUtils.checkCredentials(username, password);
-        };
+        }.bind(server);
         server.on('publish', (client, topic, value) => {
             if (topic === 'rpc') {
                 adapter.log.info('Client ' + client._id + ' call function: ' + value);
@@ -63,8 +63,10 @@ function startAdapter(options) {
             adapter.log.info('User ' + client._username + ' update ' + id + ' to ' + value2string(value));
             adapter.setForeignState(id, value);
         });
-        server.listenSocketServer(adapter.config.port, adapter.config.host);
-        server.listenHttpServer(adapter.config.port + 1, adapter.config.host);
+        server.listenSocketServer(adapter.config.port, adapter.config.host)
+            .catch(e => adapter.log.error(e.toString()));
+        server.listenHttpServer(adapter.config.port + 1, adapter.config.host)
+            .catch(e => adapter.log.error(e.toString()));
     });
     adapter.on('stateChange', (id, state) => {
         if (messageboxRegex.test(id)) {
