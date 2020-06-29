@@ -28,9 +28,17 @@
 
             onChange(false);
             $('input[type="text"],input[type="number"]').change(function () {
+                if ($(this).attr('id') === 'wsport') {
+                    return;
+                }
                 onChange();
+                $('#wsport').val($('#port').val);
             }).keyup(function () {
+                if ($(this).attr('id') === 'wsport') {
+                    return;
+                }
                 onChange();
+                $('#wsport').val($('#port').val);
             });
         }
 
@@ -75,6 +83,10 @@
         <div class="input-field col s12 m6 l4" id="_port">
             <input id="port" type="number" min="1" max="65534" size="5" class="value"/>
             <label class="translate" for="port">Port:</label>
+        </div>
+        <div class="input-field col s12 m6 l4" id="_wsport">
+            <input id="wsport" type="number" min="2" max="65535" size="5" class="value" disabled="disabled"/>
+            <label class="translate" for="wsport">WebSocket-Port:</label>
         </div>
     </div>
 
