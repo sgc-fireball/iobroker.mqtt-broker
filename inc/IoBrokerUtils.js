@@ -85,9 +85,6 @@ class IoBrokerUtils {
                             if (oldHash === newHash) {
                                 return resolve();
                             }
-
-                            this.adapter.log.warn('old: ' + oldHash);
-                            this.adapter.log.warn('new: ' + newHash);
                             return reject('Invalid credentials. Invalid Password.');
                         }
                     );
