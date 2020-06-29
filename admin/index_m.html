@@ -10,29 +10,14 @@
 
     <script type="text/javascript">
         var onChange;
-        var secret = 'Zgfr56gFe87jJOM';
-
-        function decrypt(key, value) {
-            var result = '';
-            for (var i = 0; i < value.length; ++i) {
-                result += String.fromCharCode(key[i % key.length].charCodeAt(0) ^ value.charCodeAt(i));
-            }
-            return result;
-        }
-
-        function encrypt(key, value) {
-            return decrypt(key, value);
-        }
 
         function load(settings, _onChange) {
             onChange = _onChange;
-            settings.password = !!settings.password ? decrypt(secret, settings.password) : '';
             Object.keys(settings).forEach((key) => {
                 $('#' + key).val(settings[key]);
             });
             $('#cleanup_interval').val(settings.cleanup_interval / 1000);
             $('#resend_interval').val(settings.resend_interval / 1000);
-            $('#password_confirm').val($('#password').val());
 
             getIPs(function(ips) {
                 for (var i = 0; i < ips.length; i++) {
@@ -42,7 +27,7 @@
             });
 
             onChange(false);
-            $('input[type="text"],input[type="number"],input[type="password"]').change(function () {
+            $('input[type="text"],input[type="number"]').change(function () {
                 onChange();
             }).keyup(function () {
                 onChange();
@@ -53,9 +38,6 @@
             return {
                 host: $('#host').val() || '0.0.0.0',
                 port: parseInt($('#port').val() || 1883),
-                username: $('#username').val(),
-                password: $('#password').val(),
-                password_confirm: $('#password_confirm').val(),
                 cleanup_interval: parseInt($('#cleanup_interval').val() || 90) * 1000,
                 resend_interval: parseInt($('#resend_interval').val() || 2) * 1000,
                 max_retries: parseInt($('#max_retries').val()) || 10,
@@ -72,16 +54,6 @@
                 showMessage(_('Please update your port (1-65534).'));
                 return;
             }
-            if (values.username.length < 8) {
-                showMessage(_('Please update your username (min: 8 chars).'));
-                return;
-            }
-            if (values.password.length < 8 || values.password !== values.password_confirm) {
-                showMessage(_('Please update your password (min: 8 chars).'));
-                return;
-            }
-            delete values.password_confirm;
-            values.password = encrypt(secret, values.password);
             callback(values);
         }
     </script>
@@ -103,21 +75,6 @@
         <div class="input-field col s12 m6 l4" id="_port">
             <input id="port" type="number" min="1" max="65534" size="5" class="value"/>
             <label class="translate" for="port">Port:</label>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="input-field col s12 m6 l4" id="_username">
-            <input type="text" id="username" class="value" />
-            <label class="translate" for="username">Username:</label>
-        </div>
-        <div class="input-field col s12 m6 l4" id="_password">
-            <input type="text" id="password" class="value" />
-            <label class="translate" for="password">Password:</label>
-        </div>
-        <div class="input-field col s12 m6 l4" id="_password_confirm">
-            <input type="text" id="password_confirm" class="value" />
-            <label class="translate" for="password_confirm">Password Confirm:</label>
         </div>
     </div>
 

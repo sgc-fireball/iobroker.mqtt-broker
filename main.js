@@ -1,15 +1,13 @@
 'use strict';
 
+const IoBrokerUtils = require('./inc/IoBrokerUtils');
 const utils = require('@iobroker/adapter-core');
 const adapterName = require('./package.json').name.split('.').pop();
-const decrypt = require('./inc/crypt');
-const encrypt = require('./inc/crypt');
 const value2string = require('./inc/value2string');
 const topic2id = require('./inc/topic2id');
 const id2topic = require('./inc/id2topic');
 const messageboxRegex = new RegExp('(\.messagebox$|^system\.)');
 
-const secret = 'Zgfr56gFe87jJOM';
 let adapter = null;
 let states = {};
 let server = null;
@@ -18,6 +16,7 @@ function startAdapter(options) {
     options = options || {};
     Object.assign(options, {name: adapterName});
     adapter = new utils.Adapter(options);
+    const ioUtils = new IoBrokerUtils(adapter);
 
     adapter.on('message', function (obj) {
         adapter.log.info('adapter.on.message: ' + value2string(obj));
@@ -25,7 +24,6 @@ function startAdapter(options) {
 
     adapter.on('ready', () => {
         adapter.config = adapter.config || {};
-        adapter.config.password = decrypt(secret, adapter.config.password || encrypt(secret, 'iobroker'));
 
         adapter.subscribeForeignStates('*');
         adapter.getForeignStates('*', (err, res) => {
@@ -33,11 +31,14 @@ function startAdapter(options) {
                 Object.keys(res)
                     .filter(id => !messageboxRegex.test(id))
                     .forEach(id => states[id] = res[id]);
-                adapter.log.info('Preloading states: '+Object.keys(states).length);
+                adapter.log.info('Preloading states: ' + Object.keys(states).length);
             }
         });
 
         server = require('./inc/mqttserver')(adapter.config, adapter.log.info);
+        server.prototype.checkCredentials = (username, password) => {
+            return ioUtils.checkCredentials(username, password);
+        };
         server.on('publish', (client, topic, value) => {
             if (topic === 'rpc') {
                 adapter.log.info('Client ' + client._id + ' call function: ' + value);

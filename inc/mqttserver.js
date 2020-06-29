@@ -84,7 +84,9 @@ MQTTServer.prototype.emit = function (event, parameters) {
         return this;
     }
     Object.values(this.events[event]).forEach(callback => {
-        callback.apply(undefined, parameters);
+        if (callback.apply(undefined, parameters) === false) {
+            // @TODO
+        }
     })
     return this;
 };
@@ -100,23 +102,33 @@ MQTTServer.prototype.off = function (event, id) {
     return id;
 };
 
-MQTTServer.prototype.listenSocketServer = function (port = 1883, bind = '0.0.0.0', callback) {
-    callback = callback || function () {
-    };
-    this.sockServer = new net.Server();
-    this.sockServer.on('connection', stream => this._onConnection(stream, false));
-    this.sockServer.listen(port, bind, callback);
-    return this;
+MQTTServer.prototype.listenSocketServer = function (port = 1883, bind = '0.0.0.0') {
+    return new Promise((resolve, reject) => {
+        try {
+            this.sockServer = new net.Server();
+            this.sockServer.on('connection', stream => this._onConnection(stream, false));
+            this.sockServer.listen(port, bind, () => {
+                resolve();
+            });
+        } catch (e) {
+            reject(e);
+        }
+    });
 };
 
-MQTTServer.prototype.listenHttpServer = function (port = 1884, bind = '0.0.0.0', callback) {
-    callback = callback || function () {
-    };
-    this.httpServer = http.createServer();
-    let websocketServer = new ws.Server({server: this.httpServer});
-    websocketServer.on('connection', stream => this._onConnection(stream, true));
-    this.httpServer.listen(port, bind, callback);
-    return this;
+MQTTServer.prototype.listenHttpServer = function (port = 1884, bind = '0.0.0.0') {
+    return new Promise((resolve, reject) => {
+        try {
+            this.httpServer = http.createServer();
+            let websocketServer = new ws.Server({server: this.httpServer});
+            websocketServer.on('connection', stream => this._onConnection(stream, true));
+            this.httpServer.listen(port, bind, () => {
+                resolve();
+            });
+        } catch (e) {
+            reject(e);
+        }
+    });
 };
 
 MQTTServer.prototype.getMessageId = function () {
@@ -153,46 +165,46 @@ MQTTServer.prototype._onConnection = function (stream, ws = false) {
     stream.on('timeout', () => this._onTimeout(client));
 };
 
+MQTTServer.prototype.checkCredentials = (username, password) => {
+    return new Promise((resolve, reject) => {
+        reject('Invalid auth provider.');
+    });
+};
+
 MQTTServer.prototype._onConnect = function (client, packet) {
-    if (!this.config.username || !this.config.password) {
-        this.log('Reject connection. Missing server credential settings.');
-        client.connack({returnCode: 4});
-        client.destroy();
-        return;
-    }
+    const username = (packet.username || '').toString('utf8');
+    const password = (packet.password || '').toString('utf8');
+    this.checkCredentials(username, password)
+        .then(() => {
+            client._id = packet.clientId;
+            client._username = packet.username;
+            client._keepalice = packet.keepalive || 0;
+            if (!!packet.will) {
+                let will = JSON.parse(JSON.stringify(packet.will));
+                will.payload = string2value(will.payload);
+                client._will = will;
+            }
 
-    let username = (packet.username || '').toString('utf8');
-    let password = (packet.password || '').toString('utf8');
-    if (this.config.username !== username || this.config.password !== password) {
-        this.log('Reject connection. Invalid credentials.');
-        client.connack({returnCode: 4});
-        client.destroy();
-        return;
-    }
+            this.log('Incoming connection. Client: ' + client._id);
+            client.connack({returnCode: 0, sessionPresent: !client.cleanSession});
 
-    client._id = packet.clientId;
-    client._username = packet.username;
-    client._keepalice = packet.keepalive || 0;
-    if (!!packet.will) {
-        let will = JSON.parse(JSON.stringify(packet.will));
-        will.payload = string2value(will.payload);
-        client._will = will;
-    }
-
-    this.log('Incoming connection. Client: ' + client._id);
-    client.connack({returnCode: 0, sessionPresent: !client.cleanSession});
-
-    if (!packet.clean) {
-        client._persistent = true;
-        client._messages = (this.clients[client._id] || {})._messages || {}; // {messageId: message}
-        client._subscriptions = (this.clients[client._id] || {})._subscriptions || {}; // {topic: {qos, regex}}}
-    } else {
-        client._persistent = false;
-        client._messages = {};
-        client._subscriptions = {};
-    }
-    client._connected = true;
-    this.clients[client._id] = client;
+            if (!packet.clean) {
+                client._persistent = true;
+                client._messages = (this.clients[client._id] || {})._messages || {}; // {messageId: message}
+                client._subscriptions = (this.clients[client._id] || {})._subscriptions || {}; // {topic: {qos, regex}}}
+            } else {
+                client._persistent = false;
+                client._messages = {};
+                client._subscriptions = {};
+            }
+            client._connected = true;
+            this.clients[client._id] = client;
+        })
+        .catch((e) => {
+            this.log('Reject connection. Invalid credentials.');
+            client.connack({returnCode: 4});
+            client.destroy();
+        });
 };
 
 MQTTServer.prototype._onPublish = function (client, packet) {
@@ -252,7 +264,6 @@ MQTTServer.prototype._onPubRel = function (client, packet) {
 
 MQTTServer.prototype._onSubscribe = function (client, packet) {
     client._lastSeen = Date.now();
-    client._lastSeen = Date.now();
     let granted = [];
     for (let i = 0; i < packet.subscriptions.length; i++) {
         try {
@@ -297,7 +308,7 @@ MQTTServer.prototype._onClose = function (client, error = null) {
     }
     error = error !== null && typeof (error) !== "string" ? error.toString('utf8') : error;
     if (this.clients.hasOwnProperty(client._id)) {
-        this.log('Connection closed from client '+client._id+' (reason: '+error+')');
+        this.log('Connection closed from client ' + client._id + ' (reason: ' + error + ')');
         if (this.clients[client._id]._persistent && error !== 'cleanup') {
             this.clients[client._id]._connected = false;
         } else {
