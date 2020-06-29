@@ -44,7 +44,7 @@ class IoBrokerUtils {
     checkCredentials(username, password) {
         return new Promise((resolve, reject) => {
             username = username.replace(/\s/g, '_');
-            this.adapter.getObject(
+            this.adapter.getForeignObject(
                 'system.user.' + username,
                 (err, obj) => {
                     if (err || !obj) {
