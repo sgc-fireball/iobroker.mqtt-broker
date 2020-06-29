@@ -172,6 +172,8 @@ MQTTServer.prototype.checkCredentials = (username, password) => {
 };
 
 MQTTServer.prototype._onConnect = function (client, packet) {
+    this.log('Incoming connection. Client: ' + packet.clientId);
+
     const username = (packet.username || '').toString('utf8');
     const password = (packet.password || '').toString('utf8');
     this.checkCredentials(username, password)
@@ -185,7 +187,7 @@ MQTTServer.prototype._onConnect = function (client, packet) {
                 client._will = will;
             }
 
-            this.log('Incoming connection. Client: ' + client._id);
+            this.log('Connection accepted. Client: ' + client._id+ ' Username: '+client._username);
             client.connack({returnCode: 0, sessionPresent: !client.cleanSession});
 
             if (!packet.clean) {
