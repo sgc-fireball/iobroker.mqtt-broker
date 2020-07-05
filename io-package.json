@@ -9,6 +9,7 @@
     "license": "MIT",
     "platform": "Javascript/Node.js",
     "mode": "daemon",
+    "enabled": true,
     "compact": true,
     "messagebox": true,
     "readme": "https://github.com/sgc-fireball/ioBroker.mqtt-broker/blob/master/README.md",

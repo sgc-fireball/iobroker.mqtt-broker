@@ -1,93 +1,9 @@
 'use strict';
 
-const IoBrokerUtils = require('./inc/IoBrokerUtils');
-const utils = require('@iobroker/adapter-core');
-const adapterName = require('./package.json').name.split('.').pop();
-const value2string = require('./inc/value2string');
-const topic2id = require('./inc/topic2id');
-const id2topic = require('./inc/id2topic');
-const messageboxRegex = new RegExp('(\.messagebox$|^system\.)');
+const Adapter = require('./lib/Adapter');
 
-let adapter = null;
-let states = {};
-let server = null;
-
-function startAdapter(options) {
-    options = options || {};
-    Object.assign(options, {name: adapterName});
-    adapter = new utils.Adapter(options);
-    const ioUtils = new IoBrokerUtils(adapter);
-
-    adapter.on('message', function (obj) {
-        adapter.log.info('adapter.on.message: ' + value2string(obj));
-    });
-
-    adapter.on('ready', () => {
-        adapter.config = adapter.config || {};
-
-        adapter.subscribeForeignStates('*');
-        adapter.getForeignStates('*', (err, res) => {
-            if (!err && res) {
-                Object.keys(res)
-                    .filter(id => !messageboxRegex.test(id))
-                    .forEach(id => states[id] = res[id]);
-                adapter.log.info('Preloading states: ' + Object.keys(states).length);
-            }
-        });
-
-        server = require('./inc/mqttserver')(adapter.config, adapter.log.info);
-        server.checkCredentials = function(username, password) {
-            return ioUtils.checkCredentials(username, password);
-        }.bind(server);
-        server.on('publish', (client, topic, value) => {
-            if (topic === 'rpc') {
-                adapter.log.info('Client ' + client._id + ' call function: ' + value);
-                if (value === "get_states") {
-                    setImmediate(() => {
-                        Object.keys(states).forEach((id) => {
-                            server && server.sendMessageToClient(
-                                client,
-                                id2topic(id),
-                                (states[id] || {}).val || null
-                            );
-                        });
-                    });
-                }
-                return;
-            }
-            let id = topic2id(topic);
-            if (!states.hasOwnProperty(id)) {
-                adapter.log.warn('User ' + client._username + ' try to set unknown id ' + id);
-                return;
-            }
-            adapter.log.info('User ' + client._username + ' update ' + id + ' to ' + value2string(value));
-            adapter.setForeignState(id, value);
-        });
-        server.listenSocketServer(adapter.config.port, adapter.config.host)
-            .catch(e => adapter.log.error(e.toString()));
-        server.listenHttpServer(adapter.config.port + 1, adapter.config.host)
-            .catch(e => adapter.log.error(e.toString()));
-    });
-    adapter.on('stateChange', (id, state) => {
-        if (messageboxRegex.test(id)) {
-            return;
-        }
-        if (!state) {
-            delete states[id];
-            server && server.sendMessage(id2topic(id), null);
-            return;
-        }
-        const oldVal = states.hasOwnProperty(id) ? states[id].val : null;
-        const oldAck = states.hasOwnProperty(id) ? states[id].ack : null;
-        states[id] = state;
-        if (oldVal !== state.val || oldAck !== state.ack) {
-            server && server.sendMessage(id2topic(id), state.val);
-        }
-    });
-    adapter.on('unload', () => {
-        server && server.destroy();
-    });
-    return adapter;
+if (module.parent) {
+    module.exports = (options) => new Adapter(options);
+} else {
+    new Adapter();
 }
-
-startAdapter();

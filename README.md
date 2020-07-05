@@ -12,10 +12,12 @@
 ```
 
 ## Commands
-- Topic: `rpc`
+- Topic-Prefix: `rpc/`
+- Topic-Suffix: <command>
 
-### rpc
-- Value: `get_states`
+### rpc/get_states
+- Value: any
+- Reaction: Push all states to client
 
 ## MQTT WebSocket Client
 ```bash
@@ -40,6 +42,6 @@ const client = mqtt.connect({
      qos: 0,
 });
 client.on('message', (topic, message) => {
-    
+    console.log('Topic:',topic,'Value:',message);
 });
 ```
