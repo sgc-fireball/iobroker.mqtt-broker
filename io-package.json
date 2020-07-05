@@ -1,6 +1,7 @@
 {
   "common": {
     "name": "mqtt-broker",
+    "desc": "Mit diesem Adapter können Sie MQTT IoT Geräte anschließen und steuern. Auch das Anbinden eines SmartMirrors ist möglich.",
     "version": "0.1.1",
     "title": "MQTT Broker",
     "authors": [
