@@ -20,6 +20,7 @@ via Topic `rpc/<command>`.
 ### get_states
 - Topic: `rpc/get_states`
 - Value: any
+
 Wenn diese Nachricht beim Broker ankommt, republished dieser
 Anschließend alle States nochmal in Richtung des Clienst,
 der an dieses Topic gesendet hat.
